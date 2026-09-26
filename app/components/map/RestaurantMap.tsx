@@ -28,7 +28,7 @@ export default function RestaurantMap() {
   const adelaide = { lat: -34.9287, lng: 138.5986 };
 
   return (
-    <MapContainer center={[-34.9287, 138.5986]} zoom={13} style={{ height: "400px", width: "85%", borderRadius: 12, overflow: "hidden" }}>
+    <MapContainer center={[-34.9287, 138.5986]} zoom={13} style={{ height: "400px", width: "90%", borderRadius: 12, overflow: "hidden" }}>
       <TileLayer
         attribution='&copy; OpenStreetMap contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

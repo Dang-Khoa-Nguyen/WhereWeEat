@@ -9,6 +9,7 @@ import RestaurantList from "./components/RestaurantList";
 // hook imports
 import { useRecommendation } from "@/hooks/useRecommendation";
 import RandomButton from "./components/buttons/randomButton";
+import ScratchModel from "./components/model/ScratchModel";
 
 export default function Home() {
   
@@ -19,13 +20,20 @@ export default function Home() {
   const [categories, setCategories] = useState("")
   const [stars, setStars] = useState(0)
 
+  const [randomRestaurant, setRandomRestaurant] = useState([]);
+
+  const [isOpen, setIsOpen] = useState(false)
+  const [revealed, setReaveled] = useState(false)
+
   // Get the data recommendation.
   const { data, loading, error, refetch } = useRecommendation();
 
+  console.log(randomRestaurant)
+
   const [restaurantList, setRestaurantList] = useState([
-      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
-      {"id": 2, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
-      {"id": 3, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20},
+      {"id": 2, "name": "Golden boy", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20},
+      {"id": 3, "name": "Hiro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20},
   ])
 
   const MOCK_DATA = [
@@ -110,7 +118,7 @@ export default function Home() {
               <button className="button cursor-pointer"> Find restaurants </button>
             </div>
 
-            <RandomButton restaurantList={restaurantList}/>
+            <RandomButton restaurantList={restaurantList} setIsOpen={setIsOpen} setRandomRestaurant={setRandomRestaurant}/>
         </div>
 
         {locationShow && (
@@ -132,6 +140,11 @@ export default function Home() {
                 error={error}/>
           </div>
         )}
+
+        {isOpen && ( 
+          <ScratchModel randomRestaurant={randomRestaurant} revealed={revealed} setRevealed={setReaveled} setIsOpen={setIsOpen}/>
+        )}
+
       </main>
     </div>
   );

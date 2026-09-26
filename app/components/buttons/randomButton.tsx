@@ -2,14 +2,15 @@
 
 import { useRandomRestaurant } from "@/hooks/useRandom";
 
-export default function RandomButton({restaurantList}) {
+export default function RandomButton({restaurantList, setIsOpen, setRandomRestaurant}) {
     const {randomRestaurant, loading, error, pickRandom} = useRandomRestaurant();
 
-    function handlePickRandom(restaurants) {
-        pickRandom(restaurants);
+    async function handlePickRandom(restaurants) {
+        const res = await pickRandom(restaurants);
+        setRandomRestaurant(res);
+        setIsOpen(true);
     }
 
-    console.log(randomRestaurant);
     return(
         <div 
             className={`flex justify-center`}

@@ -23,6 +23,7 @@ export function useRandomRestaurant() {
 
       const data = await res.json();
       setRandomRestaurant(data);
+      return data;
     } catch (err) {
       setError(err.message);
     } finally {
