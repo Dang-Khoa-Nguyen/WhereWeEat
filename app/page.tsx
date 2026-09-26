@@ -8,6 +8,7 @@ import RestaurantList from "./components/RestaurantList";
 
 // hook imports
 import { useRecommendation } from "@/hooks/useRecommendation";
+import RandomButton from "./components/buttons/randomButton";
 
 export default function Home() {
   
@@ -18,23 +19,31 @@ export default function Home() {
   const [categories, setCategories] = useState("")
   const [stars, setStars] = useState(0)
 
-  // get the data recommendation.
-  const { data, loading, error, refetchData } = useRecommendation();
-  const [restaurantList, setRestaurantList] = useState([])
+  // Get the data recommendation.
+  const { data, loading, error, refetch } = useRecommendation();
 
-  console.log(travelTime, averagePrice, categories, stars)
+  const [restaurantList, setRestaurantList] = useState([
+      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+      {"id": 2, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+      {"id": 3, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+  ])
 
-  // Track the change of the data
-  useEffect(() => {
-      setRestaurantList(data);
-  },[data])
+  const MOCK_DATA = [
+      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+      {"id": 2, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+      {"id": 3, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+  ]
+  // // Track the change of the data
+  // useEffect(() => {
+  //     setRestaurantList(MOCK_DATA);
+  // },[MOCK_DATA])
 
 
   function handleFindRestaurant() {
     if (!locationShow) {
       setLocationShow(true);
     }
-    refetchData();
+    refetch();
   }
 
   return (
@@ -101,9 +110,7 @@ export default function Home() {
               <button className="button cursor-pointer"> Find restaurants </button>
             </div>
 
-            <div className={`flex justify-center`}>
-              <button className="button-random cursor-pointer"> Random restaurant </button>
-            </div>
+            <RandomButton restaurantList={restaurantList}/>
         </div>
 
         {locationShow && (
