@@ -37,6 +37,10 @@ export default function RestaurantMap({route, destination}) {
   const [error, setError] = useState("");
   const [icon, setIcon] = useState(null);
 
+  const iconUrl = destination?.icon?.prefix
+  ? `${destination.icon.prefix}64${destination.icon.suffix}`
+  : "/assets/restaurant.png";
+
   useEffect(() => {
     import("leaflet").then((mod) => {
       const L = (mod as any).default ?? mod;  
@@ -51,7 +55,8 @@ export default function RestaurantMap({route, destination}) {
     });
   }, []);
 
-  if (!navigator.geolocation) {
+  useEffect( () => {
+     if (!navigator.geolocation) {
       setError("Geolocation not supported");
       return;
     }
@@ -62,20 +67,32 @@ export default function RestaurantMap({route, destination}) {
       },
         (err) => setError(err.message)
       ) 
+  })
+ 
   return (
     <MapContainer center={[-34.9287, 138.5986]} zoom={13} style={{ height: "400px", width: "90%", borderRadius: 12, overflow: "hidden" }}>
       <TileLayer
         attribution='&copy; OpenStreetMap contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={[lat, lng]}>
-        <Popup> 
-          <img src="/assets/logo-1.png" width={120} />
-          <p>You are here</p> 
+      {icon && (
+        <Marker position={[lat, lng]} icon={icon}>
+        <Popup>
+            <img src="/assets/logo-1.png" width={120} />
+            <p className="text-white">You are here</p> 
           </Popup>
       </Marker>
+      )}
+      
       {route && <Polyline positions={route} />}
-      {destination && <Marker position={[destination.lat, destination.lng]} />}
+      {destination && icon && <Marker position={[destination.lat, destination.lng]} icon={icon}>
+        <Popup> 
+          <div className="bg-[#193948] p-3 rounded-lg text-white flex flex-col items-center">
+            <img src={iconUrl} className="h-8 w-8" />
+            <p className="text-white"> {destination.name} </p> 
+          </div>
+          </Popup>
+        </Marker>}
     </MapContainer>
   );
 }

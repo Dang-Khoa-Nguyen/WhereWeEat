@@ -26,8 +26,11 @@ export function useRecommendation() {
 
   // refetch function
   function search(prefs) {
+    setLoading(true);
+
     if (!navigator.geolocation) {
       setError("Geolocation not supported");
+      setLoading(false);
       return;
     }
 
@@ -38,6 +41,8 @@ export function useRecommendation() {
       },
       (err) => setError(err.message)
     );
+    
+    setLoading(false);
   }
 
   return { data, loading, error, search};
