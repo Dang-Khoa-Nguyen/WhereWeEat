@@ -11,6 +11,10 @@ import { useRecommendation } from "@/hooks/useRecommendation";
 import RandomButton from "./components/buttons/randomButton";
 import ScratchModel from "./components/model/ScratchModel";
 
+// Icon Imports
+import { GiPathDistance } from "react-icons/gi";
+import { IoTimeOutline } from "react-icons/io5";
+
 export default function Home() {
   
   const [locationShow, setLocationShow] = useState(false)
@@ -28,11 +32,10 @@ export default function Home() {
 
   const [routes, setRoutes] = useState(null);   
   const [mode, setMode] = useState("walking");
-  const [userCoords, setUserCoords] = useState<{ lat: number | null; lng: number | null }>({
-    lat: null,
-    lng: null,
-  });
+
   const [selectedRestaurant, setSelectedRestaurant] = useState(null); 
+
+  const [transport, setTransport] = useState("walking");
 
   // Get the data recommendation.
   const { data, loading, error, search } = useRecommendation();
@@ -41,11 +44,11 @@ export default function Home() {
 
   const [restaurantList, setRestaurantList] = useState([])
 
-  const MOCK_DATA = [
-      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Vietnamese"},
-      {"id": 2, "name": "Golden boy", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Japanese"},
-      {"id": 3, "name": "Hiro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Chinese"},
-  ]
+  // const MOCK_DATA = [
+  //     {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Vietnamese"},
+  //     {"id": 2, "name": "Golden boy", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Japanese"},
+  //     {"id": 3, "name": "Hiro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Chinese"},
+  // ]
   // Track the change of the data
   useEffect(() => {
       setRestaurantList(data);
@@ -76,7 +79,7 @@ export default function Home() {
 
         setSelectedRestaurant(restaurant)
 
-      fetch(`http://127.0.0.1:8000/route?from_lat=${lat}&from_lng=${lng}&to_lat=${selectedRestaurant.lat}&to_lng=${selectedRestaurant.lng}`)
+      fetch(`http://127.0.0.1:8000/route?from_lat=${lat}&from_lng=${lng}&to_lat=${restaurant.lat}&to_lng=${restaurant.lng}`)
       .then(res => res.json())
       .then(setRoutes);
       },
@@ -92,7 +95,7 @@ export default function Home() {
       </div>
 
       <main className={`flex flex-1 ${locationShow ? "justify-between" : "justify-center"} gap-4`} style={{ padding: "2rem" }}>
-        <div className={`rounded-lg ${locationShow ? "w-500" : "w-200"} h-auto box-background self-start`}> 
+        <div className={`rounded-lg ${locationShow ? "w-500" : "w-200"} h-auto box-background self-start shadow-lg`}> 
             <h2 className="text-center text-xl mt-3 mb-3 font-bold text-default-color poppi-style"> Fill your ideal restaurants </h2>
             <div className="flex justify-center">
               <div className="w-[90%]">
@@ -146,6 +149,19 @@ export default function Home() {
                       <option value="4"> Between 4 - 5 stars </option>
                     </select>
                   </div>
+
+                  {/* <div className="flex flex-col gap-1 w-full my-2">
+                    <label className="text-sm font-bold text-gray-600"> Expected Transport </label>
+                    <select
+                        value={transport}
+                        onChange={(e) => setTransport(e.target.value)}
+                        className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
+                              focus:outline-none focus:ring-2 focus:ring-[#e76268] focus:border-transparent">
+                      <option value="walking"> Walking </option>
+                      <option value="biking"> Biking </option>
+                      <option value="driving"> Driving </option>
+                    </select>
+                  </div> */}
               </div>
             </div>
             
@@ -156,7 +172,7 @@ export default function Home() {
             <div 
             className="flex justify-center"
             onClick={() => handleFindRestaurant()}>
-              <button className="button cursor-pointer"> Find restaurants </button>
+              <button className="button cursor-pointer shadow-lg"> Find restaurants </button>
             </div>
 
             <RandomButton 
@@ -165,7 +181,7 @@ export default function Home() {
         </div>
 
         {locationShow && (
-          <div className="rounded-lg w-500 h-auto box-background"> 
+          <div className="rounded-lg w-500 h-auto box-background shadow-lg"> 
             
             <h3 className="text-lg font-bold text-default-color pl-4"> Live Map </h3>
             <div className="flex justify-center mt-5 mb-5 ">
@@ -180,11 +196,19 @@ export default function Home() {
             </div>
 
             {routes && (
-              <div>
-                <p>{routes[mode].duration_min} min · {routes[mode].distance_km} km</p>
+              <div className="flex flex-col items-center">
+                <div className="flex gap-3">
                 {["walking","biking","driving"].map(m => (
-                  <button key={m} onClick={() => setMode(m)}>{m}</button>
+                  <button 
+                    key={m} 
+                    onClick={() => setMode(m)}
+                    className={`cursor-pointer select-transport py-2 shadow-lg ${mode === m ? "bg-[#e76268] text-[#e7edf2]": "bg-[#e7edf2] text-[#193948]"}  text-center`}>{m}</button>
                 ))}
+                </div>
+                <div className="flex gap-4 mt-4">
+                  <p className="flex items-center justify-center gap-2 bg-white rounded-xl w-25 shadow-lg "> <IoTimeOutline/> {routes[mode].duration_min} min</p>
+                  <p className="flex items-center justify-center gap-2 bg-white rounded-xl w-25 shadow-lg"> <GiPathDistance/> {routes[mode].distance_km} km</p>
+                </div>
               </div>
             )}
             
