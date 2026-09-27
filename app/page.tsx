@@ -20,7 +20,7 @@ export default function Home() {
   const [locationShow, setLocationShow] = useState(false)
   const [hiddenMap, setHiddenMap] = useState(true)
 
-  const [travelTime, setTravelTime] = useState(0)
+  const [travelTime, setTravelTime] = useState("")
   const [averagePrice, setAveragePrice] = useState(0)
   const [categories, setCategories] = useState("vietnamese")
   const [stars, setStars] = useState(1)
@@ -40,9 +40,9 @@ export default function Home() {
   // Get the data recommendation.
   const { data, loading, error, search } = useRecommendation();
 
-  console.log(randomRestaurant)
-
   const [restaurantList, setRestaurantList] = useState([])
+
+  console.log(restaurantList)
 
   // const MOCK_DATA = [
   //     {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Vietnamese"},
@@ -70,7 +70,7 @@ export default function Home() {
     if (!navigator.geolocation) {
       return;
     }
-  
+    
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -110,11 +110,14 @@ export default function Home() {
                   </div> */}
 
                  <div className="flex flex-col gap-1 w-full my-2">
-                  <label className="text-sm font-bold text-gray-600">How far are you willing to travel? (min)</label>
+                  <label className="text-sm font-bold text-gray-600">How long are you willing to travel? (min)</label>
                   <input
                     type="number"
                     value={travelTime}
-                    onChange={(e) => setTravelTime(Number(e.target.value))}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setTravelTime(value === "" ? "" : Number(value));
+                    }}
                     className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
                               focus:outline-none focus:ring-2 focus:ring-[#e76268] focus:border-transparent"
                   />
@@ -231,9 +234,9 @@ export default function Home() {
             revealed={revealed} 
             setRevealed={setReaveled} 
             setIsOpen={setIsOpen}
-            setHiddenMap={setHiddenMap}/>
+            setHiddenMap={setHiddenMap}
+            routes={routes} />
         )}
-
       </main>
     </div>
   );
