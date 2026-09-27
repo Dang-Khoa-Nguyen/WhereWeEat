@@ -8,6 +8,9 @@ export function useRecommendation() {
   const [error, setError] = useState<string | null>(null);
 
   async function fetchData(c,prefs) {
+
+      setLoading(true);
+      
       try {
         const res = await fetch(`http://127.0.0.1:8000/recommend?lat=${c.lat}&lng=${c.lng}&max_travel=${prefs.travelTime}&cuisine=${prefs.categories}&avg_stars=${prefs.stars}`);
 
@@ -26,8 +29,6 @@ export function useRecommendation() {
 
   // refetch function
   function search(prefs) {
-    setLoading(true);
-
     if (!navigator.geolocation) {
       setError("Geolocation not supported");
       setLoading(false);
@@ -35,14 +36,15 @@ export function useRecommendation() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        fetchData(c, prefs);
+        await fetchData(c, prefs);
       },
-      (err) => setError(err.message)
+      (err) => { 
+      setError(err.message)
+      setLoading(false);
+    }
     );
-    
-    setLoading(false);
   }
 
   return { data, loading, error, search};

@@ -4,6 +4,9 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/outline";
 
+// Animation imports
+import { OrbitProgress } from "react-loading-indicators";
+
 export default function RestaurantList({restaurantList, setRestaurantList, loading, error, handleShowRoute}) {
 
     function handleDelete(id) {
@@ -11,11 +14,22 @@ export default function RestaurantList({restaurantList, setRestaurantList, loadi
         prev.filter(restaurant => restaurant.id !== id))
     }
 
+    if (error) {
+        return(
+            <p>Error: {error}</p>
+        )
+    }
+
     return(
         <div>
-            {loading && <p>Loading...</p>}
-            {error && <p>Error: {error}</p>}
-            {!restaurantList || restaurantList.length === 0 ? (
+            {loading ? (
+                <div className="flex flex-col items-center gap-2">
+                    <OrbitProgress color="#193948" size="medium" text="" textColor="" />
+                    <p>Loading...</p>
+                </div>
+            ) : (
+            <div>
+ {!restaurantList || restaurantList.length === 0 ? (
                 <div className="text-sm font-light text-center p-5 text-gray-500"> No restaurant recommendations </div>
                 ) : (
                     <div>
@@ -36,6 +50,9 @@ export default function RestaurantList({restaurantList, setRestaurantList, loadi
                         })}
                     </div>
                 )}  
+            </div>)}
+
+           
         </div>
     )
 }
