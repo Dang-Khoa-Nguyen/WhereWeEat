@@ -30,10 +30,9 @@ class Restaurant(BaseModel):
     lat: float
     lng: float
     rating: float
-    categories: str = "none"
+    cuisine: str = "none"
     address: Optional[str] = None
     icon: Optional[Icon] = None
-    hour: Optional[Hours] = None
 
 class Hours(BaseModel):
     display: Optional[list[str]] = None

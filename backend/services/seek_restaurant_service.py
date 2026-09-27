@@ -47,4 +47,4 @@ class SeekService:
 
 if __name__ == "__main__":
     result = asyncio.run(SeekService.search_restaurants(-34.9287, 138.5986))
-    print(result)
+    print(result[0])
