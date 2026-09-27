@@ -8,6 +8,7 @@ def format_list(data):
         # Safely get the cuisine: handle missing AND empty list
         categories = element.get("categories") or []         
         cuisine = categories[0].get("short_name", "none")
+        icon = categories[0].get("icon", "public/assets/logo-1.png")
 
         # Skip the restaurant doesn't have lat and lng
         lat = element.get("latitude")
@@ -17,12 +18,14 @@ def format_list(data):
 
         restaurants.append({
             "id": str(uuid.uuid4()),
+            "fsq_place_id": element.get("fsq_place_id"),
             "name": element.get("name", "Unknown"),
             "lat": element.get("latitude"),
             "lng": element.get("longitude"),
             "cuisine": cuisine,
             "rating": get_rating(element["fsq_place_id"]),
-            "address": element.get("location", {}).get("formatted_address", "Unknown")
+            "address": element.get("location", {}).get("formatted_address", "Unknown"),
+            "icon" : icon
         })
 
     return restaurants
