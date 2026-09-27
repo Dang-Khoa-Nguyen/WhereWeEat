@@ -14,44 +14,74 @@ import ScratchModel from "./components/model/ScratchModel";
 export default function Home() {
   
   const [locationShow, setLocationShow] = useState(false)
+  const [hiddenMap, setHiddenMap] = useState(true)
 
   const [travelTime, setTravelTime] = useState(0)
   const [averagePrice, setAveragePrice] = useState(0)
-  const [categories, setCategories] = useState("")
-  const [stars, setStars] = useState(0)
+  const [categories, setCategories] = useState("vietnamese")
+  const [stars, setStars] = useState(1)
 
   const [randomRestaurant, setRandomRestaurant] = useState([]);
 
   const [isOpen, setIsOpen] = useState(false)
   const [revealed, setReaveled] = useState(false)
 
+  const [routes, setRoutes] = useState(null);   
+  const [mode, setMode] = useState("walking");
+  const [userCoords, setUserCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: null,
+    lng: null,
+  });
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null); 
+
   // Get the data recommendation.
-  const { data, loading, error, refetch } = useRecommendation();
+  const { data, loading, error, search } = useRecommendation();
 
   console.log(randomRestaurant)
 
-  const [restaurantList, setRestaurantList] = useState([
-      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20},
-      {"id": 2, "name": "Golden boy", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20},
-      {"id": 3, "name": "Hiro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20},
-  ])
+  const [restaurantList, setRestaurantList] = useState([])
 
   const MOCK_DATA = [
-      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
-      {"id": 2, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
-      {"id": 3, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
+      {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Vietnamese"},
+      {"id": 2, "name": "Golden boy", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Japanese"},
+      {"id": 3, "name": "Hiro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Chinese"},
   ]
-  // // Track the change of the data
-  // useEffect(() => {
-  //     setRestaurantList(MOCK_DATA);
-  // },[MOCK_DATA])
+  // Track the change of the data
+  useEffect(() => {
+      setRestaurantList(data);
+  },[data])
 
 
   function handleFindRestaurant() {
     if (!locationShow) {
       setLocationShow(true);
     }
-    refetch();
+    search({travelTime,categories,stars});
+  }
+
+  function handleShowRoute(restaurant) {
+    if (!restaurant) {
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      return;
+    }
+  
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude;
+
+        setSelectedRestaurant(restaurant)
+
+      fetch(`http://127.0.0.1:8000/route?from_lat=${lat}&from_lng=${lng}&to_lat=${selectedRestaurant.lat}&to_lng=${selectedRestaurant.lng}`)
+      .then(res => res.json())
+      .then(setRoutes);
+      },
+      (err) => console.log(err.message)
+    );
   }
 
   return (
@@ -63,54 +93,65 @@ export default function Home() {
 
       <main className={`flex flex-1 ${locationShow ? "justify-between" : "justify-center"} gap-4`} style={{ padding: "2rem" }}>
         <div className={`rounded-lg ${locationShow ? "w-500" : "w-200"} h-auto box-background self-start`}> 
-            <h2 className="text-center text-xl mt-3 mb-3 font-bold text-default-color"> Fill your ideal restaurants </h2>
-            <div>
+            <h2 className="text-center text-xl mt-3 mb-3 font-bold text-default-color poppi-style"> Fill your ideal restaurants </h2>
+            <div className="flex justify-center">
+              <div className="w-[90%]">
+                <div className="flex justify-center">
+                  {/* <div  className="flex flex-col w-full">
+                    <label className="text-sm"> Average Price </label>
+                    <input 
+                    name="average-price"
+                    type="number"
+                    className="border rounded-lg w-[50%] h-10"
+                    onChange={(e) => setAveragePrice(Number(e.target.value))}/>
+                  </div> */}
 
-                <div>
-                  <label className="text-sm"> Expected travel time </label>
-                  <input 
-                  name="travel-time"
-                  type="number"
-                  className="border rounded-lg w-10"
-                  onChange={(e) => setTravelTime(e.target.value)}/>
+                 <div className="flex flex-col gap-1 w-full my-2">
+                  <label className="text-sm font-bold text-gray-600">How far are you willing to travel? (min)</label>
+                  <input
+                    type="number"
+                    value={travelTime}
+                    onChange={(e) => setTravelTime(Number(e.target.value))}
+                    className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
+                              focus:outline-none focus:ring-2 focus:ring-[#e76268] focus:border-transparent"
+                  />
                 </div>
 
-                <div>
-                  <label className="text-sm"> Average Price </label>
-                  <input 
-                  name="average-price"
-                  type="number"
-                  className="border rounded-lg w-10"
-                  onChange={(e) => setAveragePrice(e.target.value)}/>
                 </div>
 
-                <div>
-                  <label className="text-sm"> Categories </label>
-                  <select
-                  name="categories"
-                  className="border rounded-lg w-60"
-                  onChange={(e) => setCategories(e.target.value)}>
-                    <option> Vietnamese </option>
-                    <option> Chinese </option>
-                    <option> Japanese </option>
-                    <option> Fine Dining </option>
-                  </select>
-                </div>
+                  <div className="flex flex-col gap-1 w-full my-2">
+                    <label className="text-sm font-bold text-gray-600"> Cuisine </label>
+                    <select
+                        value={categories}
+                        onChange={(e) => setCategories(e.target.value)}
+                        className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
+                              focus:outline-none focus:ring-2 focus:ring-[#e76268] focus:border-transparent">
+                      <option value="vietnamese"> Vietnamese </option>
+                      <option value="chinese"> Chinese </option>
+                      <option value="japanese"> Japanese </option>
+                      <option value="australian"> Australian </option>
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="text-sm"> Stars </label>
-                  <select
-                  name="categories"
-                  className="border rounded-lg w-60"
-                  onChange={(e) => setStars(e.target.value)}>
-                    <option value="1"> Above 1 star</option>
-                    <option value="2"> Between 2 - 3 stars </option>
-                    <option value="3"> Between 3 - 4 stars </option>
-                    <option value="4"> Between 4 - 5 stars </option>
-                  </select>
-                </div>
+                  <div className="flex flex-col gap-1 w-full my-2">
+                    <label className="text-sm font-bold text-gray-600"> Average Rating </label>
+                    <select
+                    name="stars"
+                    className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
+                              focus:outline-none focus:ring-2 focus:ring-[#e76268] focus:border-transparent"
+                    onChange={(e) => setStars(Number(e.target.value))}>
+                      <option value="1"> Above 1 star</option>
+                      <option value="2"> Between 2 - 3 stars </option>
+                      <option value="3"> Between 3 - 4 stars </option>
+                      <option value="4"> Between 4 - 5 stars </option>
+                    </select>
+                  </div>
+              </div>
             </div>
-
+            
+            <div className="flex justify-center">
+              <hr className="my-5 w-[70%]"/>
+            </div>
             {/*Button*/}
             <div 
             className="flex justify-center"
@@ -118,7 +159,9 @@ export default function Home() {
               <button className="button cursor-pointer"> Find restaurants </button>
             </div>
 
-            <RandomButton restaurantList={restaurantList} setIsOpen={setIsOpen} setRandomRestaurant={setRandomRestaurant}/>
+            <RandomButton 
+            restaurantList={restaurantList} setIsOpen={setIsOpen} setRandomRestaurant={setRandomRestaurant}
+            setHiddenMap={setHiddenMap}/>
         </div>
 
         {locationShow && (
@@ -126,8 +169,24 @@ export default function Home() {
             
             <h3 className="text-lg font-bold text-default-color pl-4"> Live Map </h3>
             <div className="flex justify-center mt-5 mb-5 ">
-              <RestaurantMap/>
+              {hiddenMap ? (
+<RestaurantMap route={routes ? routes[mode].geometry : null} destination={selectedRestaurant}/>
+              ) : ( 
+                <div className="flex items-center border border-dotted rounded-lg text-2xl"
+                style={{ height: "400px",width: "550px"}}>
+
+                </div>
+              )}
             </div>
+
+            {routes && (
+              <div>
+                <p>{routes[mode].duration_min} min · {routes[mode].distance_km} km</p>
+                {["walking","biking","driving"].map(m => (
+                  <button key={m} onClick={() => setMode(m)}>{m}</button>
+                ))}
+              </div>
+            )}
             
             {/*Restaurant List*/}
             <h3 className="text-lg font-bold text-default-color pl-4"> 
@@ -137,12 +196,18 @@ export default function Home() {
                 restaurantList={restaurantList} 
                 setRestaurantList={setRestaurantList}
                 loading={loading}
-                error={error}/>
+                error={error}
+                handleShowRoute={handleShowRoute}/>
           </div>
         )}
 
         {isOpen && ( 
-          <ScratchModel randomRestaurant={randomRestaurant} revealed={revealed} setRevealed={setReaveled} setIsOpen={setIsOpen}/>
+          <ScratchModel 
+            randomRestaurant={randomRestaurant} 
+            revealed={revealed} 
+            setRevealed={setReaveled} 
+            setIsOpen={setIsOpen}
+            setHiddenMap={setHiddenMap}/>
         )}
 
       </main>

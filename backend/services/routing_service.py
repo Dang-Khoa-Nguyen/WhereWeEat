@@ -74,8 +74,8 @@ class RoutingService:
         # distance (m), duration (s)
         summary = feature["properties"]["summary"] 
 
-        # list of [lng, lat] points
-        geometry = feature["geometry"]["coordinates"]  
+        # list of [lat, lng] points
+        geometry = [[lat, lng] for lng, lat in feature["geometry"]["coordinates"]] 
 
         return {
             "distance_km": round(summary["distance"] / 1000, 1),
