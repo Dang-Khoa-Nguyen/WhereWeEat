@@ -13,32 +13,33 @@ import ScratchModel from "./components/model/ScratchModel";
 
 // utils
 import { getCoords } from "@/lib/geo";
+import { API_URL } from "@/lib/api";
 
 // Icon Imports
 import { GiPathDistance } from "react-icons/gi";
 import { IoTimeOutline } from "react-icons/io5";
+import { OrbitProgress } from "react-loading-indicators";
 
 export default function Home() {
   
   const [locationShow, setLocationShow] = useState(false)
   const [hiddenMap, setHiddenMap] = useState(true)
 
+  // User preferences from the form
   const [travelTime, setTravelTime] = useState("")
-  const [averagePrice, setAveragePrice] = useState(0)
   const [categories, setCategories] = useState("vietnamese")
   const [stars, setStars] = useState(1)
 
+  // Result + modal state
   const [randomRestaurant, setRandomRestaurant] = useState([]);
-
   const [isOpen, setIsOpen] = useState(false)
   const [revealed, setReaveled] = useState(false)
 
-  const [routes, setRoutes] = useState(null);   
+  // Route + map state
+  const [routes, setRoutes] = useState(null);
+  const [loadingRoutes, setLoadingRoutes] = useState(false);
   const [mode, setMode] = useState("walking");
-
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null); 
-
-  const [transport, setTransport] = useState("walking");
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
   const userInput = {
     travelTime: travelTime,
@@ -51,14 +52,7 @@ export default function Home() {
 
   const [restaurantList, setRestaurantList] = useState([])
 
-  console.log(restaurantList)
-
-  // const MOCK_DATA = [
-  //     {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Vietnamese"},
-  //     {"id": 2, "name": "Golden boy", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Japanese"},
-  //     {"id": 3, "name": "Hiro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60, "avgPrice": 20, "cuisine": "Chinese"},
-  // ]
-  // Track the change of the data
+  // Keep the local list in sync with the hook's fetched data
   useEffect(() => {
       setRestaurantList(data);
   },[data])
@@ -78,14 +72,17 @@ export default function Home() {
 
     setSelectedRestaurant(restaurant);
     try {
+      setLoadingRoutes(true);
       const c = await getCoords();
       const res = await fetch(
-        `http://127.0.0.1:8000/route?from_lat=${c.lat}&from_lng=${c.lng}&to_lat=${restaurant.lat}&to_lng=${restaurant.lng}`
+        `${API_URL}/route?from_lat=${c.lat}&from_lng=${c.lng}&to_lat=${restaurant.lat}&to_lng=${restaurant.lng}`
       );
       if (!res.ok) throw new Error("Failed to fetch route");
       setRoutes(await res.json());
     } catch (err: any) {
       console.log(err.message);
+    } finally {
+      setLoadingRoutes(false);
     }
   }
 
@@ -96,23 +93,14 @@ export default function Home() {
         <h1 className="mt-10 mb-10 text-4xl poppi-style">WhereWeEat? </h1>
       </div>
 
-      <main className={`flex flex-1 ${locationShow ? "justify-between" : "justify-center"} gap-4`} style={{ padding: "2rem" }}>
-        <div className={`rounded-lg ${locationShow ? "w-500" : "w-200"} h-auto box-background self-start shadow-lg`}> 
+      <main className={`flex flex-col md:flex-row flex-1 ${locationShow ? "md:justify-between" : "md:justify-center"} gap-4`} style={{ padding: "2rem" }}>
+        <div className={`rounded-lg w-full ${locationShow ? "md:w-500" : "md:w-200"} h-auto box-background self-start shadow-lg`}>
             <h2 className="text-center text-xl mt-3 mb-3 font-bold text-default-color poppi-style"> Fill your ideal restaurants </h2>
             <div className="flex justify-center">
               <div className="w-[90%]">
                 <div className="flex justify-center">
-                  {/* <div  className="flex flex-col w-full">
-                    <label className="text-sm"> Average Price </label>
-                    <input 
-                    name="average-price"
-                    type="number"
-                    className="border rounded-lg w-[50%] h-10"
-                    onChange={(e) => setAveragePrice(Number(e.target.value))}/>
-                  </div> */}
-
                  <div className="flex flex-col gap-1 w-full my-2">
-                  <label className="text-sm font-bold text-gray-600">How long are you willing to travel? (min)</label>
+                  <label className="text-sm font-bold text-gray-600">How long are you willing to travel? (minutes) average max </label>
                   <input
                     type="number"
                     value={travelTime}
@@ -120,6 +108,7 @@ export default function Home() {
                       const value = e.target.value;
                       setTravelTime(value === "" ? "" : Number(value));
                     }}
+                    max={60}
                     className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
                               focus:outline-none focus:ring-2 focus:ring-[#e76268] focus:border-transparent"
                   />
@@ -137,6 +126,9 @@ export default function Home() {
                       <option value="vietnamese"> Vietnamese </option>
                       <option value="chinese"> Chinese </option>
                       <option value="japanese"> Japanese </option>
+                      <option value="japanese"> Malaysian </option>
+                      <option value="japanese"> Filipino </option>
+                      <option value="indian"> Indian </option>
                       <option value="australian"> Australian </option>
                     </select>
                   </div>
@@ -154,19 +146,6 @@ export default function Home() {
                       <option value="4"> Between 4 - 5 stars </option>
                     </select>
                   </div>
-
-                  {/* <div className="flex flex-col gap-1 w-full my-2">
-                    <label className="text-sm font-bold text-gray-600"> Expected Transport </label>
-                    <select
-                        value={transport}
-                        onChange={(e) => setTransport(e.target.value)}
-                        className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
-                              focus:outline-none focus:ring-2 focus:ring-[#e76268] focus:border-transparent">
-                      <option value="walking"> Walking </option>
-                      <option value="biking"> Biking </option>
-                      <option value="driving"> Driving </option>
-                    </select>
-                  </div> */}
               </div>
             </div>
             
@@ -188,7 +167,7 @@ export default function Home() {
         </div>
 
         {locationShow && (
-          <div className="rounded-lg w-500 h-auto box-background shadow-lg"> 
+          <div className="rounded-lg w-full md:w-500 h-auto box-background shadow-lg">
             
             <h3 className="text-lg font-bold text-default-color pl-4"> Live Map </h3>
             <div className="flex justify-center mt-5 mb-5 ">
@@ -201,8 +180,13 @@ export default function Home() {
                 </div>
               )}
             </div>
-
-            {routes && (
+            {loadingRoutes ? (
+                              <div className="flex justify-center">
+                            <OrbitProgress variant="disc" color="#193948" size="medium" text="" textColor="" />
+                          </div>
+                        ) : (
+          <div>
+              {routes && (
               <div className="flex flex-col items-center">
                 <div className="flex gap-3">
                 {["walking","biking","driving"].map(m => (
@@ -218,6 +202,8 @@ export default function Home() {
                 </div>
               </div>
             )}
+              </div>
+              )}
             
             {/*Restaurant List*/}
             <h3 className="text-lg font-bold text-default-color pl-4"> 

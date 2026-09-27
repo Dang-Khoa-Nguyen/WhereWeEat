@@ -31,16 +31,17 @@ import { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css"; 
 
 export default function RestaurantMap({route, destination}) {
-  const adelaide = { lat: -34.9287, lng: 138.5986 };
   const [lat, setLat] = useState(0);
   const [lng, setLng] = useState(0);
   const [error, setError] = useState("");
   const [icon, setIcon] = useState(null);
 
+  // Use the place's own Foursquare icon if we have one, else a fallback
   const iconUrl = destination?.icon?.prefix
   ? `${destination.icon.prefix}64${destination.icon.suffix}`
   : "/assets/restaurant.png";
 
+  // Build the marker icon on the client (Leaflet needs the browser)
   useEffect(() => {
     import("leaflet").then((mod) => {
       const L = (mod as any).default ?? mod;  

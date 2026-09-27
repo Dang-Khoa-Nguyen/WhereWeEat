@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { getCoords } from "@/lib/geo";
+import { API_URL } from "@/lib/api";
 
+// Powers the "Random restaurant" flow.
 export function useRandomRestaurant() {
   const [randomRestaurant, setRandomRestaurant] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  async function pickRandom(restaurantList, prefs) {
+  async function pickRandom(restaurantList: any, prefs: any) {
     try {
       // If a list already exists, pick from it with no API call.
       if (restaurantList && restaurantList.length > 0) {
@@ -23,8 +25,8 @@ export function useRandomRestaurant() {
       const c = await getCoords(); // now awaitable (Promise-wrapped)
 
       const res = await fetch(
-        `http://127.0.0.1:8000/random?lat=${c.lat}&lng=${c.lng}` +
-          `&max_travel=${prefs.travelTime || 15}&cuisine=${prefs.categories || ""}&avg_stars=${prefs.stars || 0}`
+        `${API_URL}/random?lat=${c.lat}&lng=${c.lng}` +
+          `&max_travel=${prefs.travelTime || 15}&cuisine=${prefs.categories || ""}&avg_stars=${prefs.stars || 3.5}`
       );
 
       if (!res.ok) throw new Error("Failed to fetch");

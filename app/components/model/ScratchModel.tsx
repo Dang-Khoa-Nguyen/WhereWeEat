@@ -6,13 +6,9 @@ import ScratchCard from 'react-scratchcard-v2';
 import RestaurantMap from '../map/RestaurantMap';
 
 // Icon Imports
-import { FaWalking } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
 import { FaArrowRight } from "react-icons/fa";
 import { CiForkAndKnife } from "react-icons/ci";
-import { GiPathDistance } from "react-icons/gi";
-import { IoTimeOutline } from "react-icons/io5";
-
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 
@@ -22,10 +18,11 @@ export default function ScratchModel({randomRestaurant, revealed, setRevealed, s
   const [userLat, setUserLat] = useState(0);
   const [userLng, setUserLng] = useState(0);
 
+  // Scratch card grows once revealed
   const width = !revealed ? 320 : 512;
   const height = !revealed ? 240 : 672;
-  console.log(selectTransport)
 
+  // Grab the user's location for the "Get Directions" link
   useEffect(() => {
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -86,7 +83,7 @@ export default function ScratchModel({randomRestaurant, revealed, setRevealed, s
                   <div 
                   className={`cursor-pointer select-transport py-2 ${selectTransport === "driving" ? "bg-[#e76268] text-[#e7edf2]": "bg-[#e7edf2] text-[#193948]"}  text-center`}
                   onClick={(e) => setSelectTransport("driving")}
-                  > Biking 
+                  > Driving
                   </div>
                 </div>
               </div>
@@ -96,28 +93,13 @@ export default function ScratchModel({randomRestaurant, revealed, setRevealed, s
                     <h2 className='text-2xl text-center rounded-lg poppi-style py-3'> Overview</h2>
                     <div className='rounded-lg bg-white py-2 '>
 
-                      {/* <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
-                        <label> Time Travel </label>
-                        <p
-                        className='flex gap-2'
-                        > <FaWalking/>{randomRestaurant.}mins</p>
-                      </div> */}
-
                       <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
                         <label> Rating Stars </label>
                                               <p
                       className='flex gap-2 items-center'
                       > <FaStar/>{randomRestaurant.rating} </p>
-                     
-                      </div>
 
-                      {/* <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
-                        <label> Average Price </label>
-                        <p
-                          className='flex gap-2 items-center'
-                        > ${randomRestaurant.avgPrice} AUD </p>
-                     
-                      </div> */}
+                      </div>
 
                       <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
                         <label> Cuisine </label>

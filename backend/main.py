@@ -59,57 +59,40 @@ def home():
 
 @app.get("/recommend", response_model=List[Restaurant])
 async def recommendation_restaurant(lat: float, lng: float, max_travel: int, cuisine: str, avg_stars: int):
-    #  await SeekService.find_restaurants(lat, lng, 100)
+    #  MOCK DATA
     #     restaurants = [   {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
     #       {"id": 2, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
     #       {"id": 3, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
     #   ]
-   
-    # Calculate the widest radius 
-    radius_calculate = CalculateService.travel_time_to_radius("walking", max_travel)
-    
-    restaurants = await SeekService.search_restaurants(lat,lng, radius_calculate, cuisine)
 
-    filter_star = []
-    if avg_stars == 1:
-        filter_star = [r for r in restaurants if r["rating"] > 1 ]
+    # Catch all variables
+    if lat == 0 or lng == 0:
+        raise HTTPException(status_code=400, detail="Invalid coordinates")
+
+    if max_travel <= 0:
+        raise HTTPException(status_code=400, detail="Travel time must be greater than 0")
+
+    if avg_stars <= 0 or avg_stars > 5:
+        raise HTTPException(status_code=400, detail="Average stars must be higher 0 or lower than 5")
     
-    if avg_stars == 2:
-        filter_star = [r for r in restaurants if r["rating"] > 2 and  r["rating"] <= 3 ]
-        
-    if avg_stars == 3:
-        filter_star = [r for r in restaurants if r["rating"] > 3 and  r["rating"] <= 4]
-        
-    if avg_stars == 4:
-        filter_star = [r for r in restaurants if r["rating"] > 4 ]
-        
-    return filter_star
+    return await SeekService.find_filtered_restaurants(lat, lng, max_travel, cuisine, avg_stars)
 
 @app.get("/random")
 async def random_restaurant(lat: float, lng: float, max_travel: int, cuisine: str, avg_stars: int):
 
-    if lat == 0 or lng == 0 or max_travel == 0 or cuisine == "" or avg_stars == 0:
-        raise HTTPException(status_code=404, message="There are no variables needed")
+    # Catches all the varaibles
+    if lat == 0 or lng == 0:
+        raise HTTPException(status_code=400, detail="Invalid coordinates")
 
-      # Calculate the widest radius 
-    radius_calculate = CalculateService.travel_time_to_radius("walking", max_travel)
+    if max_travel <= 0:
+        raise HTTPException(status_code=400, detail="Travel time must be greater than 0")
+
+    if avg_stars <= 0 or avg_stars > 5:
+        raise HTTPException(status_code=400, detail="Average stars must be higher 0 or lower than 5")
     
-    restaurants = await SeekService.search_restaurants(lat,lng, radius_calculate, cuisine)
+    filtered_restaurants = await SeekService.find_filtered_restaurants(lat, lng, max_travel, cuisine, avg_stars)
 
-    filter_star = []
-    if avg_stars == 1:
-        filter_star = [r for r in restaurants if r["rating"] > 1 ]
-    
-    if avg_stars == 2:
-        filter_star = [r for r in restaurants if r["rating"] > 2 and  r["rating"] <= 3 ]
-        
-    if avg_stars == 3:
-        filter_star = [r for r in restaurants if r["rating"] > 3 and  r["rating"] <= 4]
-        
-    if avg_stars == 4:
-        filter_star = [r for r in restaurants if r["rating"] > 4 ]
-
-    return RandomService.random_restaurant(filter_star)
+    return RandomService.random_restaurant(filtered_restaurants)
 
 @app.get("/route", response_model=RoutesResponse)
 async def route(from_lat: float, from_lng: float, to_lat: float, to_lng: float):
