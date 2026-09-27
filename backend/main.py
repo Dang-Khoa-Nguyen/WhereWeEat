@@ -32,6 +32,16 @@ class Restaurant(BaseModel):
     rating: float
     categories: str = "none"
     address: Optional[str] = None
+    icon: Optional[Icon] = None
+    hour: Optional[Hours] = None
+
+class Hours(BaseModel):
+    display: Optional[list[str]] = None
+    open_now: Optional[bool] = None
+
+class Icon(BaseModel):
+    prefix: str
+    suffix: str
 
 class RouteInfo(BaseModel):
     duration_min: int
@@ -57,7 +67,7 @@ async def recommendation_restaurant(lat: float, lng: float, max_travel: int, cui
     #   ]
    
     # Calculate the widest radius 
-    radius_calculate = CalculateService.travel_time_to_radius("driving", max_travel)
+    radius_calculate = CalculateService.travel_time_to_radius("walking", max_travel)
     
     restaurants = await SeekService.search_restaurants(lat,lng, radius_calculate, cuisine)
 
