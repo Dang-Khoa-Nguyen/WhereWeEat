@@ -85,14 +85,31 @@ async def recommendation_restaurant(lat: float, lng: float, max_travel: int, cui
         
     return filter_star
 
-@app.post("/random")
-def random_restaurant(data: RestaurantList):
-    restaurants = data.restaurants
+@app.get("/random")
+async def random_restaurant(lat: float, lng: float, max_travel: int, cuisine: str, avg_stars: int):
 
-    if not restaurants:
-        raise HTTPException(status_code=404, message="There are no retaurants")
+    if lat == 0 or lng == 0 or max_travel == 0 or cuisine == "" or avg_stars == 0:
+        raise HTTPException(status_code=404, message="There are no variables needed")
+
+      # Calculate the widest radius 
+    radius_calculate = CalculateService.travel_time_to_radius("walking", max_travel)
     
-    return RandomService.random_restaurant(restaurants)
+    restaurants = await SeekService.search_restaurants(lat,lng, radius_calculate, cuisine)
+
+    filter_star = []
+    if avg_stars == 1:
+        filter_star = [r for r in restaurants if r["rating"] > 1 ]
+    
+    if avg_stars == 2:
+        filter_star = [r for r in restaurants if r["rating"] > 2 and  r["rating"] <= 3 ]
+        
+    if avg_stars == 3:
+        filter_star = [r for r in restaurants if r["rating"] > 3 and  r["rating"] <= 4]
+        
+    if avg_stars == 4:
+        filter_star = [r for r in restaurants if r["rating"] > 4 ]
+
+    return RandomService.random_restaurant(filter_star)
 
 @app.get("/route", response_model=RoutesResponse)
 async def route(from_lat: float, from_lng: float, to_lat: float, to_lng: float):

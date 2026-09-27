@@ -11,6 +11,9 @@ import { useRecommendation } from "@/hooks/useRecommendation";
 import RandomButton from "./components/buttons/randomButton";
 import ScratchModel from "./components/model/ScratchModel";
 
+// utils
+import { getCoords } from "@/lib/geo";
+
 // Icon Imports
 import { GiPathDistance } from "react-icons/gi";
 import { IoTimeOutline } from "react-icons/io5";
@@ -37,6 +40,12 @@ export default function Home() {
 
   const [transport, setTransport] = useState("walking");
 
+  const userInput = {
+    travelTime: travelTime,
+    categories: categories,
+    stars: stars,
+  }
+
   // Get the data recommendation.
   const { data, loading, error, search } = useRecommendation();
 
@@ -62,29 +71,22 @@ export default function Home() {
     search({travelTime,categories,stars});
   }
 
-  function handleShowRoute(restaurant) {
-    if (!restaurant) {
-      return;
+  // Shared by BOTH the list click (Find) and the Random button:
+  // given a restaurant, fetch its route (all modes) and store it.
+  async function handleShowRoute(restaurant: any) {
+    if (!restaurant) return;
+
+    setSelectedRestaurant(restaurant);
+    try {
+      const c = await getCoords();
+      const res = await fetch(
+        `http://127.0.0.1:8000/route?from_lat=${c.lat}&from_lng=${c.lng}&to_lat=${restaurant.lat}&to_lng=${restaurant.lng}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch route");
+      setRoutes(await res.json());
+    } catch (err: any) {
+      console.log(err.message);
     }
-
-    if (!navigator.geolocation) {
-      return;
-    }
-    
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude;
-
-        setSelectedRestaurant(restaurant)
-
-      fetch(`http://127.0.0.1:8000/route?from_lat=${lat}&from_lng=${lng}&to_lat=${restaurant.lat}&to_lng=${restaurant.lng}`)
-      .then(res => res.json())
-      .then(setRoutes);
-      },
-      (err) => console.log(err.message)
-    );
   }
 
   return (
@@ -175,12 +177,14 @@ export default function Home() {
             <div 
             className="flex justify-center"
             onClick={() => handleFindRestaurant()}>
-              <button className="button cursor-pointer shadow-lg"> Find restaurants </button>
+              <button className={`button shadow-lg ${loading ? "cursor-wait opacity-50" : "cursor-pointer opacity-100"}`}> Find restaurants </button>
             </div>
 
-            <RandomButton 
+            <RandomButton
+            userInput={userInput}
             restaurantList={restaurantList} setIsOpen={setIsOpen} setRandomRestaurant={setRandomRestaurant}
-            setHiddenMap={setHiddenMap}/>
+            setHiddenMap={setHiddenMap}
+            onChosen={handleShowRoute}/>
         </div>
 
         {locationShow && (

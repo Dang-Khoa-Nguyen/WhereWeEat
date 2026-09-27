@@ -2,13 +2,17 @@
 
 import { useRandomRestaurant } from "@/hooks/useRandom";
 
-export default function RandomButton({restaurantList, setIsOpen, setRandomRestaurant, setHiddenMap}) {
+export default function RandomButton({userInput, restaurantList, setIsOpen, setRandomRestaurant, setHiddenMap, onChosen}) {
+
     const {randomRestaurant, loading, error, pickRandom} = useRandomRestaurant();
 
     async function handlePickRandom(restaurants) {
-        const res = await pickRandom(restaurants);
-        setRandomRestaurant(res);
-        setIsOpen(true);
+        const restaurant = await pickRandom(restaurants, userInput);
+        if (!restaurant) return;   
+
+        setRandomRestaurant(restaurant);
+        await onChosen(restaurant);             
+        setIsOpen(true);                        
         setHiddenMap(false);
     }
 
@@ -16,7 +20,7 @@ export default function RandomButton({restaurantList, setIsOpen, setRandomRestau
         <div 
             className={`flex justify-center`}
             onClick={() => handlePickRandom(restaurantList)}>
-            <button className="button-random cursor-pointer shadow-lg"> Random restaurant </button>
+            <button className={`button-random shadow-lg ${loading ? "cursor-wait opacity-50" : "cursor-pointer opacity-100"}`}> Random restaurant </button>
         </div>
     );
 }
