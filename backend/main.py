@@ -30,7 +30,7 @@ class Restaurant(BaseModel):
     lat: float
     lng: float
     rating: float
-    categories: List[str] = []
+    categories: str = "none"
     address: Optional[str] = None
 
 class RouteInfo(BaseModel):
@@ -48,8 +48,8 @@ class RoutesResponse(BaseModel):
 def home():
     return {"message": "Hello world"}
 
-@app.get("/recommend", response_model=Restaurant)
-async def recommendation_restaurant(lat, lng, travelTime, categories, avgStar):
+@app.get("/recommend", response_model=List[Restaurant])
+async def recommendation_restaurant(lat: float, lng: float, max_travel: int, cuisine: str, avg_stars: int):
     #  await SeekService.find_restaurants(lat, lng, 100)
     #     restaurants = [   {"id": 1, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
     #       {"id": 2, "name": "Kintaro Sushi", "stars" : 4, "location": "Marion", "travelTime": 60},
@@ -57,21 +57,21 @@ async def recommendation_restaurant(lat, lng, travelTime, categories, avgStar):
     #   ]
    
     # Calculate the widest radius 
-    radius_calculate = CalculateService.travel_time_to_radius("driving", travelTime)
+    radius_calculate = CalculateService.travel_time_to_radius("driving", max_travel)
     
-    restaurants = await SeekService.search_restaurants(lat,lng, radius_calculate, categories)
+    restaurants = await SeekService.search_restaurants(lat,lng, radius_calculate, cuisine)
 
     filter_star = []
-    if avgStar == 1:
+    if avg_stars == 1:
         filter_star = [r for r in restaurants if r["rating"] > 1 ]
     
-    if avgStar == 2:
+    if avg_stars == 2:
         filter_star = [r for r in restaurants if r["rating"] > 2 and  r["rating"] <= 3 ]
         
-    if avgStar == 3:
+    if avg_stars == 3:
         filter_star = [r for r in restaurants if r["rating"] > 3 and  r["rating"] <= 4]
         
-    if avgStar == 4:
+    if avg_stars == 4:
         filter_star = [r for r in restaurants if r["rating"] > 4 ]
         
     return filter_star
@@ -81,7 +81,7 @@ def random_restaurant(data: RestaurantList):
     restaurants = data.restaurants
 
     if not restaurants:
-        return {"error": "restaurants list are empty. Can't randomise"}
+        raise HTTPException(status_code=404, message="There are no retaurants")
     
     return RandomService.random_restaurant(restaurants)
 
