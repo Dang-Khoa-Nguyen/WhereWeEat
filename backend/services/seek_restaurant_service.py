@@ -20,21 +20,9 @@ class SeekService:
         radius_calculate = CalculateService.travel_time_to_radius("walking", max_travel)
         
         restaurants = await SeekService.search_restaurants(lat,lng, radius_calculate, cuisine)
-    
-        filter_star = []
-        if avg_stars == 1:
-            filter_star = [r for r in restaurants if r["rating"] > 1 ]
-        
-        if avg_stars == 2:
-            filter_star = [r for r in restaurants if r["rating"] > 2 and  r["rating"] <= 3 ]
-            
-        if avg_stars == 3:
-            filter_star = [r for r in restaurants if r["rating"] > 3 and  r["rating"] <= 4]
-            
-        if avg_stars == 4:
-            filter_star = [r for r in restaurants if r["rating"] > 4 ]
 
-        return filter_star
+        # Keep restaurants at or above the requested rating.
+        return [r for r in restaurants if r["rating"] >= avg_stars]
 
     @staticmethod
     async def search_restaurants(lat: float, lng: float, radius: int = 2000, cuisine: str="", retries: int = 3):

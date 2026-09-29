@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.seek_restaurant_service import SeekService
 from services.random_service import RandomService
 from services.routing_service import RoutingService
-from services.calculate_service import CalculateService
 
 from typing import List, Dict, Optional
 
@@ -24,6 +23,14 @@ app.add_middleware(
 class RestaurantList(BaseModel):
     restaurants: List[Dict]
 
+class Hours(BaseModel):
+    display: Optional[list[str]] = None
+    open_now: Optional[bool] = None
+
+class Icon(BaseModel):
+    prefix: str
+    suffix: str
+
 class Restaurant(BaseModel):
     id: str
     name: str
@@ -33,14 +40,6 @@ class Restaurant(BaseModel):
     cuisine: str = "none"
     address: Optional[str] = None
     icon: Optional[Icon] = None
-
-class Hours(BaseModel):
-    display: Optional[list[str]] = None
-    open_now: Optional[bool] = None
-
-class Icon(BaseModel):
-    prefix: str
-    suffix: str
 
 class RouteInfo(BaseModel):
     duration_min: int
