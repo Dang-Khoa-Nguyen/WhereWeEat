@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 
 import ScratchCard from 'react-scratchcard-v2';
 import RestaurantMap from '../map/RestaurantMap';
+import { getCoords } from '@/lib/geo';
+import { useApp } from '@/app/context/AppContext';
+import { TransportMode } from '@/lib/types';
 
 // Icon Imports
 import { FaStar } from "react-icons/fa";
@@ -12,9 +15,40 @@ import { CiForkAndKnife } from "react-icons/ci";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 
-export default function ScratchModel({randomRestaurant, revealed, setRevealed, setIsOpen, setHiddenMap, routes}) {
+// Spinning wheel of food emojis shown while the random pick loads.
+function FoodWheel() {
+  const emojis = ["🍜", "🍕", "🍣", "🥘", "🍔", "🌮", "🍛", "🍱"];
+  const radius = 62;
+  return (
+    <div onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-6">
+      <div className="relative animate-spin" style={{ width: 160, height: 160, animationDuration: "1.4s" }}>
+        {emojis.map((emoji, i) => {
+          const angle = (i * 360) / emojis.length;
+          return (
+            <span
+              key={i}
+              className="absolute text-3xl"
+              style={{
+                left: "50%",
+                top: "50%",
+                marginLeft: -16,
+                marginTop: -16,
+                transform: `rotate(${angle}deg) translate(0, -${radius}px)`,
+              }}>
+              {emoji}
+            </span>
+          );
+        })}
+      </div>
+      <p className="text-white text-2xl animate-pulse">Finding your spot…</p>
+    </div>
+  );
+}
 
-  const [selectTransport, setSelectTransport] = useState("walking")
+export default function ScratchModel() {
+  const { selected, routes, revealed, setRevealed, closeReveal, picking } = useApp();
+
+  const [selectTransport, setSelectTransport] = useState<TransportMode>("walking");
   const [userLat, setUserLat] = useState(0);
   const [userLng, setUserLng] = useState(0);
 
@@ -22,129 +56,119 @@ export default function ScratchModel({randomRestaurant, revealed, setRevealed, s
   const width = !revealed ? 320 : 512;
   const height = !revealed ? 240 : 672;
 
-  // Grab the user's location for the "Get Directions" link
+  // Grab the user's location for the "Get Directions" link (via lib/geo)
   useEffect(() => {
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      setUserLat(pos.coords.latitude);
-      setUserLng(pos.coords.longitude);
-    },
-    (err) => console.log(err.message)
-  );
-}, []);
+    getCoords()
+      .then((c) => { setUserLat(c.lat); setUserLng(c.lng); })
+      .catch((err) => console.log(err.message));
+  }, []);
+
+  // While the random pick loads, show the spinning wheel (no close on backdrop).
+  if (picking) {
+    return (
+      <div className='fixed inset-0 z-50 bg-black/50 flex items-center justify-center'>
+        <FoodWheel />
+      </div>
+    );
+  }
+
+  if (!selected) return null;
+  const route = routes ? routes[selectTransport] : null;
+
   return (
     <div className='fixed inset-0 z-50 bg-black/50 flex items-center justify-center transition-all duration-500'
-    onClick={(e) => [setIsOpen(false) , setRevealed(false), setHiddenMap(true)]}>
-          {!revealed ? (
-            <div onClick={(e) => e.stopPropagation()}>
-        <ScratchCard
-        width={width}
-        height={height}
-        finishPercent={70}
-        onComplete={() => setRevealed(true)}
-      >
-        <div 
-          className={`block content-center pt-6 text-center bg-white rounded-lg shadow-xl duration-500 w-full h-full`} 
-        >
-          <h1 className='text-3xl poppi-style'>{randomRestaurant.name}</h1>
-          <div className='flex justify-center gap-3 mt-3'> 
-            <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <FaStar/> {randomRestaurant.rating} </p>
-            <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <CiForkAndKnife/> {randomRestaurant.cuisine}  </p>
+      onClick={closeReveal}>
+      {!revealed ? (
+        <div onClick={(e) => e.stopPropagation()}>
+          <ScratchCard
+            {...({
+              width,
+              height,
+              finishPercent: 70,
+              onComplete: () => setRevealed(true),
+              ariaLabel: "Scratch to reveal",
+            } as any)}
+          >
+            <div className='block content-center pt-6 text-center bg-white rounded-lg shadow-xl duration-500 w-full h-full'>
+              <h1 className='text-3xl poppi-style'>{selected.name}</h1>
+              <div className='flex justify-center gap-3 mt-3'>
+                <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <FaStar /> {selected.rating} </p>
+                <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <CiForkAndKnife /> {selected.cuisine} </p>
+              </div>
+            </div>
+          </ScratchCard>
+          <h2 className="text-white  font-bold text-2xl text-center animate-pulse"> Scratch to reveal! </h2>
+        </div>
+      ) : (
+        <div className="relative reveal-pop bg-white rounded-lg shadow-xl p-6 w-[700px] h-[750px] overflow-y-scroll"
+          onClick={(e) => e.stopPropagation()}>
+
+          <XMarkIcon className='absolute h-8 w-8 right-3 top-8 cursor-pointer' onClick={closeReveal} />
+          <h1 className='text-3xl text-center poppi-style'>{selected.name}</h1>
+
+          <div className='flex flex-col items-center'>
+            <RestaurantMap route={route ? route.geometry : null} destination={selected} />
+
+            {/* Transportation */}
+            <div className='flex mt-2 gap-4 justify-center'>
+              {(["walking", "biking", "driving"] as TransportMode[]).map((m) => (
+                <div
+                  key={m}
+                  className={`cursor-pointer select-transport py-2 capitalize ${selectTransport === m ? "bg-[#e76268] text-[#e7edf2]" : "bg-[#e7edf2] text-[#193948]"} text-center`}
+                  onClick={() => setSelectTransport(m)}>
+                  {m}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className='flex justify-center mt-5'>
+            <div className='rounded-lg bg-[#fcdc73] w-[90%]'>
+              <h2 className='text-2xl text-center rounded-lg poppi-style py-3'> Overview</h2>
+              <div className='rounded-lg bg-white py-2'>
+
+                <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
+                  <label> Rating Stars </label>
+                  <p className='flex gap-2 items-center'> <FaStar />{selected.rating} </p>
+                </div>
+
+                <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
+                  <label> Cuisine </label>
+                  <p className='flex gap-2 items-center'> {selected.cuisine} </p>
+                </div>
+
+                <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
+                  <label> Location </label>
+                  <p className='flex gap-2 items-center'> {selected.address} </p>
+                </div>
+
+                <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
+                  <label> Time travel </label>
+                  <p> {route ? `${route.duration_min} min` : "…"} </p>
+                </div>
+
+                <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
+                  <label> Distance </label>
+                  <p> {route ? `${route.distance_km} km` : "…"} </p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {/* Get directions */}
+          <div className='flex justify-end w-[94%]'>
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${selected.lat},${selected.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-4 bg-blue-400 text-white w-50 py-4 mt-4 rounded-lg"
+            >
+              Get Directions <FaArrowRight />
+            </a>
           </div>
         </div>
-   
-      </ScratchCard>
-      </div>
-          ) : (
-            <div className="relative eveal-pop bg-white rounded-lg shadow-xl p-6 w-[700px] h-[750px] overflow-y-scroll"
-            onClick={(e) => e.stopPropagation()}>
-
-              <XMarkIcon className='absolute h-8 w-8 right-3 top-8 cursor-pointer'
-              onClick={() => [setIsOpen(false) , setRevealed(false), setHiddenMap(true)]}/>
-              <h1 className='text-3xl text-center poppi-style'>{randomRestaurant.name}</h1>
-              <div className='flex flex-col items-center'>
-  
-              <RestaurantMap route={routes ? routes[selectTransport].geometry : null} destination={randomRestaurant}/>
-            
-              {/*Transportation*/}
-              <div className='flex mt-2 gap-4 justify-center'>
-                  <div
-                  className={`cursor-pointer select-transport py-2 ${selectTransport === "walking" ? "bg-[#e76268] text-[#e7edf2]": "bg-[#e7edf2] text-[#193948]"}  text-center`}
-                  onClick={(e) => setSelectTransport("walking")}
-                  > Walking 
-                  </div>
-
-                  <div 
-                  className={`cursor-pointer select-transport py-2 ${selectTransport === "biking" ? "bg-[#e76268] text-[#e7edf2]": "bg-[#e7edf2] text-[#193948]"}  text-center`}
-                  onClick={(e) => setSelectTransport("biking")}
-                  > Biking 
-                  </div>
-
-                  <div 
-                  className={`cursor-pointer select-transport py-2 ${selectTransport === "driving" ? "bg-[#e76268] text-[#e7edf2]": "bg-[#e7edf2] text-[#193948]"}  text-center`}
-                  onClick={(e) => setSelectTransport("driving")}
-                  > Driving
-                  </div>
-                </div>
-              </div>
-
-                 <div className='flex justify-center mt-5 '> 
-                  <div className='rounded-lg  bg-[#fcdc73] w-[90%]'>
-                    <h2 className='text-2xl text-center rounded-lg poppi-style py-3'> Overview</h2>
-                    <div className='rounded-lg bg-white py-2 '>
-
-                      <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
-                        <label> Rating Stars </label>
-                                              <p
-                      className='flex gap-2 items-center'
-                      > <FaStar/>{randomRestaurant.rating} </p>
-
-                      </div>
-
-                      <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
-                        <label> Cuisine </label>
-                        <p
-                          className='flex gap-2 items-center'
-                        > {randomRestaurant.cuisine}  </p>
-                     
-                      </div>
-
-                      <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'>
-                        <label> Location </label>
-                        <p
-                          className='flex gap-2 items-center'
-                        > {randomRestaurant.address} </p>
-                     
-                      </div>
-
-                      <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'> 
-                        <label> Time travel </label>
-                        <p> {routes[selectTransport].duration_min} min </p>
-                      </div>
-
-                      <div className='flex justify-between rounded-sm bg-[#193948] text-[#fcdc73] font-light drop-shadow-sm mx-2 my-2 py-3 px-5'> 
-                          <label> Distance </label>
-                          <p>{routes[selectTransport].distance_km} km</p>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-
-                {/* Get directions */}
-                <div className='flex justify-end w-[94%]'>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${randomRestaurant.lat},${randomRestaurant.lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-4 bg-blue-400 text-white w-50 py-4 mt-4 rounded-lg"
-                >
-                  Get Directions <FaArrowRight/>
-                </a>
-                </div>
-            </div>
-          )}
- 
+      )}
     </div>
-  )
+  );
 }
