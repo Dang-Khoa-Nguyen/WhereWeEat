@@ -7,12 +7,17 @@ import { StarIcon } from "@heroicons/react/24/outline";
 // Animation imports
 import { OrbitProgress } from "react-loading-indicators";
 
-export default function RestaurantList({restaurantList, setRestaurantList, loading, error, handleShowRoute}) {
+import { Restaurant } from "@/lib/types";
 
-    function handleDelete(id) {
-        setRestaurantList(prev => 
-        prev.filter(restaurant => restaurant.id !== id))
-    }
+type RestaurantListProps = {
+  restaurantList: Restaurant[];
+  onSelect: (r: Restaurant) => void;
+  onDelete: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+};
+
+export default function RestaurantList({restaurantList, onSelect, onDelete, loading, error}: RestaurantListProps) {
 
     if (error) {
         return(
@@ -32,11 +37,11 @@ export default function RestaurantList({restaurantList, setRestaurantList, loadi
  {!restaurantList || restaurantList.length === 0 ? (
                 <div className="text-sm font-light text-center p-5 text-gray-500"> No restaurant recommendations </div>
                 ) : (
-                    <div>
+                    <div className="max-h-110 overflow-y-auto">
                         {restaurantList.map((restaurant) => {
                         return(
                         <div key={restaurant.id}
-                        onClick={() => handleShowRoute(restaurant)}
+                        onClick={() => onSelect(restaurant)}
                         className="flex items-center justify-between gap-2 text-xs rounded-lg list-items cursor-pointer">
                             {/* Name + address stacked so they don't collide */}
                             <div className="flex flex-col min-w-0">
@@ -50,7 +55,7 @@ export default function RestaurantList({restaurantList, setRestaurantList, loadi
                                     <StarIcon className="w-4 h-4 md:w-5 md:h-5 text-yellow-500"/>
                                 </span>
                                 <XMarkIcon
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(restaurant.id); }}
+                                    onClick={(e) => { e.stopPropagation(); onDelete(restaurant.id); }}
                                     className="w-4 h-4 text-red-400 cursor-pointer"/>
                             </div>
                         </div>)

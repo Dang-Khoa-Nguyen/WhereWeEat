@@ -28,13 +28,20 @@ const Polyline = dynamic(
 );
 
 import { useState, useEffect } from "react";
-import "leaflet/dist/leaflet.css"; 
+import "leaflet/dist/leaflet.css";
+import { Restaurant, LatLng } from "@/lib/types";
+import { useApp } from "@/app/context/AppContext";
 
-export default function RestaurantMap({route, destination}) {
-  const [lat, setLat] = useState(0);
-  const [lng, setLng] = useState(0);
-  const [error, setError] = useState("");
-  const [icon, setIcon] = useState(null);
+type RestaurantMapProps = {
+  route: LatLng[] | null;
+  destination: Restaurant | null;
+};
+
+const ADELAIDE: LatLng = [-34.9287, 138.5986];
+
+export default function RestaurantMap({route, destination}: RestaurantMapProps) {
+  const { userLocation } = useApp(); // shared location, fetched once
+  const [icon, setIcon] = useState<any>(null);
 
   // Use the place's own Foursquare icon if we have one, else a fallback
   const iconUrl = destination?.icon?.prefix
@@ -44,7 +51,7 @@ export default function RestaurantMap({route, destination}) {
   // Build the marker icon on the client (Leaflet needs the browser)
   useEffect(() => {
     import("leaflet").then((mod) => {
-      const L = (mod as any).default ?? mod;  
+      const L = (mod as any).default ?? mod;
       setIcon(
         L.icon({
           iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
@@ -56,28 +63,16 @@ export default function RestaurantMap({route, destination}) {
     });
   }, []);
 
-  useEffect( () => {
-     if (!navigator.geolocation) {
-      setError("Geolocation not supported");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLat(position.coords.latitude),
-        setLng(position.coords.longitude)
-      },
-        (err) => setError(err.message)
-      ) 
-  })
- 
+  const center: LatLng = userLocation ? [userLocation.lat, userLocation.lng] : ADELAIDE;
+
   return (
-    <MapContainer center={[-34.9287, 138.5986]} zoom={13} style={{ height: "400px", width: "90%", borderRadius: 12, overflow: "hidden" }}>
+    <MapContainer center={center} zoom={13} style={{ height: "400px", width: "90%", borderRadius: 12, overflow: "hidden" }}>
       <TileLayer
         attribution='&copy; OpenStreetMap contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {icon && (
-        <Marker position={[lat, lng]} icon={icon}>
+      {icon && userLocation && (
+        <Marker position={[userLocation.lat, userLocation.lng]} icon={icon}>
         <Popup>
             <img src="/assets/logo-1.png" width={120} />
             <p className="text-white">You are here</p> 
