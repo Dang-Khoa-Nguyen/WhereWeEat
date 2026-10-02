@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import ScratchCard from 'react-scratchcard-v2';
 import RestaurantMap from '../map/RestaurantMap';
 import { getCoords } from '@/lib/geo';
-import { useApp } from '@/app/context/AppContext';
 import { TransportMode } from '@/lib/types';
+import { useStore } from '@/store/useStore';
 
 // Icon Imports
 import { FaStar } from "react-icons/fa";
@@ -46,7 +46,12 @@ function FoodWheel() {
 }
 
 export default function ScratchModel() {
-  const { selected, routes, revealed, setRevealed, closeReveal, picking } = useApp();
+  const selected = useStore((s) => s.selected);
+  const routes = useStore((s) => s.routes);
+  const revealed = useStore((s) => s.revealed);
+  const setRevealed = useStore((s) => s.setRevealed);
+  const closeReveal = useStore((s) => s.closeReveal);
+  const picking = useStore((s) => s.picking);
 
   const [selectTransport, setSelectTransport] = useState<TransportMode>("walking");
   const [userLat, setUserLat] = useState(0);

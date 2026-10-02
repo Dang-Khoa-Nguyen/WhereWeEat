@@ -30,7 +30,7 @@ const Polyline = dynamic(
 import { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 import { Restaurant, LatLng } from "@/lib/types";
-import { useApp } from "@/app/context/AppContext";
+import { useStore } from "@/store/useStore";
 
 type RestaurantMapProps = {
   route: LatLng[] | null;
@@ -40,7 +40,7 @@ type RestaurantMapProps = {
 const ADELAIDE: LatLng = [-34.9287, 138.5986];
 
 export default function RestaurantMap({route, destination}: RestaurantMapProps) {
-  const { userLocation } = useApp(); // shared location, fetched once
+  const userLocation = useStore((s) => s.userLocation); // shared location, fetched once
   const [icon, setIcon] = useState<any>(null);
 
   // Use the place's own Foursquare icon if we have one, else a fallback

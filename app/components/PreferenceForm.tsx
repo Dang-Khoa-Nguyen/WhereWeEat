@@ -1,17 +1,18 @@
 "use client";
 
-import { useApp } from "@/app/context/AppContext";
+import { useStore } from "@/store/useStore";
 import LocationFallback from "./LocationFallback";
 
 export default function PreferenceForm() {
-  const {
-    travelTime, setTravelTime,
-    cuisine, setCuisine,
-    stars, setStars,
-    showResults,
-    loadingList,
-    findRestaurants, pickRandom,
-  } = useApp();
+  const travelTime = useStore((s) => s.travelTime);
+  const setTravelTime = useStore((s) => s.setTravelTime);
+  const cuisine = useStore((s) => s.cuisine);
+  const setCuisine = useStore((s) => s.setCuisine);
+  const stars = useStore((s) => s.stars);
+  const setStars = useStore((s) => s.setStars);
+  const loadingList = useStore((s) => s.loadingList);
+  const findRestaurants = useStore((s) => s.findRestaurants);
+  const pickRandom = useStore((s) => s.pickRandom);
 
   return (
     <div className={`rounded-lg w-[70%] h-auto box-background self-center shadow-lg`}>

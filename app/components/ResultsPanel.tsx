@@ -1,6 +1,6 @@
 "use client";
 
-import { useApp } from "@/app/context/AppContext";
+import { useStore } from "@/store/useStore";
 import RestaurantMap from "./map/RestaurantMap";
 import { TransportMode } from "@/lib/types";
 
@@ -10,9 +10,11 @@ import { GiPathDistance } from "react-icons/gi";
 const MODES: TransportMode[] = ["walking", "biking", "driving"];
 
 export default function ResultsPanel() {
-  const {selected, routes, mode, setMode,
-    showMainMap,
-  } = useApp();
+  const selected = useStore((s) => s.selected);
+  const routes = useStore((s) => s.routes);
+  const mode = useStore((s) => s.mode);
+  const setMode = useStore((s) => s.setMode);
+  const showMainMap = useStore((s) => s.showMainMap);
 
   return (
     <div className="rounded-lg w-[70%] h-auto box-background shadow-lg self-center">

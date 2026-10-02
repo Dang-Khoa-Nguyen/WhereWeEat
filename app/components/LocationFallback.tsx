@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useApp } from "@/app/context/AppContext";
+import { useStore } from "@/store/useStore";
 
 // Shown only when the browser couldn't give us the user's location.
 // Lets them type an address instead, which we geocode via Nominatim.
 export default function LocationFallback() {
-  const { locationError, setManualLocation } = useApp();
+  const locationError = useStore((s) => s.locationError);
+  const setManualLocation = useStore((s) => s.setManualLocation);
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState(false);
   const [ok, setOk] = useState(false);
