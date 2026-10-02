@@ -8,7 +8,17 @@ export function getCoords(): Promise<{ lat: number; lng: number }> {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      (err) => reject(err)
+      (err) => reject(err),
+      {
+        // prefer GPS-level accuracy
+        enableHighAccuracy: true,
+
+        // fail after 10s instead of hanging (iOS can hang) 
+        timeout: 10000,           
+
+        // accept a cached fix up to 1 min old
+        maximumAge: 60000,        
+      }
     );
   });
 }
