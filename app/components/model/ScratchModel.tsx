@@ -20,7 +20,7 @@ function FoodWheel() {
   const emojis = ["🍜", "🍕", "🍣", "🥘", "🍔", "🌮", "🍛", "🍱"];
   const radius = 62;
   return (
-    <div onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-6">
+    <button onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-6">
       <div className="relative animate-spin" style={{ width: 160, height: 160, animationDuration: "1.4s" }}>
         {emojis.map((emoji, i) => {
           const angle = (i * 360) / emojis.length;
@@ -41,7 +41,7 @@ function FoodWheel() {
         })}
       </div>
       <p className="text-white text-2xl animate-pulse">Finding your spot…</p>
-    </div>
+    </button>
   );
 }
 
@@ -79,7 +79,7 @@ export default function ScratchModel() {
     <div className='fixed inset-0 z-50 bg-black/50 flex items-center justify-center transition-all duration-500'
       onClick={closeReveal}>
       {!revealed ? (
-        <div onClick={(e) => e.stopPropagation()}>
+        <button onClick={(e) => e.stopPropagation()}>
           <ScratchCard
             {...({
               width,
@@ -92,18 +92,19 @@ export default function ScratchModel() {
             <div className='block content-center pt-6 text-center bg-white rounded-lg shadow-xl duration-500 w-full h-full'>
               <h1 className='text-3xl poppi-style'>{selected.name}</h1>
               <div className='flex justify-center gap-3 mt-3'>
-                <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <FaStar /> {selected.rating} </p>
-                <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <CiForkAndKnife /> {selected.cuisine} </p>
+                <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <FaStar aria-label="Rating"/> {selected.rating} </p>
+                <p className='flex items-center gap-2 bg-[#193948] text-[#fcdc73] px-3 rounded-lg'> <CiForkAndKnife aria-label="Cuisine"/> {selected.cuisine} </p>
               </div>
             </div>
           </ScratchCard>
           <h2 className="text-white  font-bold text-2xl text-center animate-pulse"> Scratch to reveal! </h2>
-        </div>
+        </button>
       ) : (
+
         <div className="relative reveal-pop bg-white rounded-lg shadow-xl p-6 w-[700px] h-[750px] overflow-y-scroll"
           onClick={(e) => e.stopPropagation()}>
 
-          <XMarkIcon className='absolute h-8 w-8 right-3 top-8 cursor-pointer' onClick={closeReveal} />
+          <XMarkIcon aria-label="Close" className='absolute h-8 w-8 right-3 top-8 cursor-pointer' onClick={closeReveal} />
           <h1 className='text-3xl text-center poppi-style'>{selected.name}</h1>
 
           <div className='flex flex-col items-center'>
@@ -112,12 +113,14 @@ export default function ScratchModel() {
             {/* Transportation */}
             <div className='flex mt-2 gap-4 justify-center'>
               {(["walking", "biking", "driving"] as TransportMode[]).map((m) => (
-                <div
+                <button
                   key={m}
                   className={`cursor-pointer select-transport py-2 capitalize ${selectTransport === m ? "bg-[#e76268] text-[#e7edf2]" : "bg-[#e7edf2] text-[#193948]"} text-center`}
                   onClick={() => setSelectTransport(m)}>
                   {m}
-                </div>
+                </button>
+
+            
               ))}
             </div>
           </div>
@@ -164,7 +167,7 @@ export default function ScratchModel() {
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-4 bg-blue-400 text-white w-50 py-4 mt-4 rounded-lg"
             >
-              Get Directions <FaArrowRight />
+              Get Directions <FaArrowRight aria-label="Get Directions"/>
             </a>
           </div>
         </div>

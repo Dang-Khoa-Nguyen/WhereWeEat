@@ -72,19 +72,19 @@ export default function RestaurantMap({route, destination}: RestaurantMapProps) 
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {icon && userLocation && (
-        <Marker position={[userLocation.lat, userLocation.lng]} icon={icon}>
+        <Marker position={[userLocation.lat, userLocation.lng]} icon={icon} aria-label="Your Location"> 
         <Popup>
-            <img src="/assets/logo-1.png" width={120} />
+            <img alt="your location" src="/assets/logo-1.png" width={120} />
             <p className="text-white">You are here</p> 
           </Popup>
       </Marker>
       )}
       
       {route && <Polyline positions={route} />}
-      {destination && icon && <Marker position={[destination.lat, destination.lng]} icon={icon}>
+      {destination && icon && <Marker position={[destination.lat, destination.lng]} icon={icon} aria-label="Destination">
         <Popup> 
           <div className="bg-[#193948] p-3 rounded-lg text-white flex flex-col items-center">
-            <img src={iconUrl} className="h-8 w-8" />
+            <img alt="destination" src={iconUrl} className="h-8 w-8" />
             <p className="text-white"> {destination.name} </p> 
           </div>
           </Popup>

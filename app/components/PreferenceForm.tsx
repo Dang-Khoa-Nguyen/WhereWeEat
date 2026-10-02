@@ -19,8 +19,9 @@ export default function PreferenceForm() {
       <div className="flex justify-center">
         <div className="w-[90%]">
           <div className="flex flex-col gap-1 w-full my-2">
-            <label className="text-sm font-bold text-gray-600">How long are you willing to travel? (min)</label>
+            <label htmlFor="travel-time" className="text-sm font-bold text-gray-600">How long are you willing to travel? (min)</label>
             <input
+              id="travel-time" 
               type="number"
               value={travelTime}
               onChange={(e) => {
@@ -33,8 +34,9 @@ export default function PreferenceForm() {
           </div>
 
           <div className="flex flex-col gap-1 w-full my-2">
-            <label className="text-sm font-bold text-gray-600"> Cuisine </label>
+            <label htmlFor="cuisine" className="text-sm font-bold text-gray-600"> Cuisine </label>
             <select
+              id="cuisine"
               value={cuisine}
               onChange={(e) => setCuisine(e.target.value)}
               className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]
@@ -48,8 +50,9 @@ export default function PreferenceForm() {
           </div>
 
           <div className="flex flex-col gap-1 w-full my-2">
-            <label className="text-sm font-bold text-gray-600"> Minimum rating </label>
+            <label htmlFor="rating" className="text-sm font-bold text-gray-600"> Minimum rating </label>
             <select
+              id="rating"
               value={stars}
               onChange={(e) => setStars(Number(e.target.value))}
               className="w-full rounded-lg border border-[#193948] px-3 py-2 text-sm bg-[#e7edf2]

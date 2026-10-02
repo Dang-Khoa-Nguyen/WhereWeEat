@@ -5,6 +5,7 @@ import PreferenceForm from "./components/PreferenceForm";
 import ResultsPanel from "./components/ResultsPanel";
 import ScratchModel from "./components/model/ScratchModel";
 import RestaurantList from "./components/RestaurantList";
+import Image from 'next/image'
 
 // Inner component so it can read the context provided just above it.
 function HomeContent() {
@@ -16,7 +17,7 @@ function HomeContent() {
   return (
     <div>
       <div className="flex items-center justify-center gap-5">
-        <img src="/assets/logo-1.png" className="w-13 h-13 text-black" />
+        <Image alt="WhereWeEat logo" src="/assets/logo-1.png" className="w-13 h-13 text-black" width={40} height={50}/>
         <h1 className="mt-10 mb-10 text-4xl poppi-style">WhereWeEat? </h1>
       </div>
 

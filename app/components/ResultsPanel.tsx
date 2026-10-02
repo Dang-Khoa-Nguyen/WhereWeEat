@@ -48,10 +48,10 @@ export default function ResultsPanel() {
           </div>
           <div className="flex gap-4 mt-4">
             <p className="flex items-center justify-center gap-2 bg-white rounded-xl w-25 shadow-lg">
-              <IoTimeOutline /> {routes[mode].duration_min} min
+              <IoTimeOutline aria-label="Duration" /> {routes[mode].duration_min} min
             </p>
             <p className="flex items-center justify-center gap-2 bg-white rounded-xl w-25 shadow-lg">
-              <GiPathDistance /> {routes[mode].distance_km} km
+              <GiPathDistance aria-label="Distance" /> {routes[mode].distance_km} km
             </p>
           </div>
         </div>

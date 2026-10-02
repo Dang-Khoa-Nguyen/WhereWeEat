@@ -40,7 +40,7 @@ export default function RestaurantList({restaurantList, onSelect, onDelete, load
                     <div className="max-h-110 overflow-y-auto">
                         {restaurantList.map((restaurant) => {
                         return(
-                        <div key={restaurant.id}
+                        <button key={restaurant.id}
                         onClick={() => onSelect(restaurant)}
                         className="flex items-center justify-between gap-2 text-xs rounded-lg list-items cursor-pointer">
                             {/* Name + address stacked so they don't collide */}
@@ -52,13 +52,14 @@ export default function RestaurantList({restaurantList, onSelect, onDelete, load
                             <div className="flex items-center gap-2 shrink-0">
                                 <span className="flex items-center gap-1">
                                     {restaurant.rating}
-                                    <StarIcon className="w-4 h-4 md:w-5 md:h-5 text-yellow-500"/>
+                                    <StarIcon aria-label="Rating" className="w-4 h-4 md:w-5 md:h-5 text-yellow-500"/>
                                 </span>
                                 <XMarkIcon
                                     onClick={(e) => { e.stopPropagation(); onDelete(restaurant.id); }}
+                                    aria-label="Delete"
                                     className="w-4 h-4 text-red-400 cursor-pointer"/>
                             </div>
-                        </div>)
+                        </button>)
                         })}
                     </div>
                 )}  
