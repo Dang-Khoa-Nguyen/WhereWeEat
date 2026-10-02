@@ -1,6 +1,7 @@
 "use client";
 
 import { useApp } from "@/app/context/AppContext";
+import LocationFallback from "./LocationFallback";
 
 export default function PreferenceForm() {
   const {
@@ -86,6 +87,12 @@ export default function PreferenceForm() {
           className={`button-random shadow-lg ${loadingList ? "cursor-wait opacity-50" : "cursor-pointer opacity-100"}`}>
           Random restaurant
         </button>
+      </div>
+
+      <div className="flex justify-center">
+        <div className="w-[90%]">
+          <LocationFallback />
+        </div>
       </div>
     </div>
   );

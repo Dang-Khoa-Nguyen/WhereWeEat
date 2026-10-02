@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useRef, useState, ReactNode } from "react";
 import { API_URL } from "@/lib/api";
-import { getCoords } from "@/lib/geo";
+import { getCoords, geocodeAddress } from "@/lib/geo";
 import { Restaurant, Routes, TransportMode } from "@/lib/types";
 
 type Coords = { lat: number; lng: number };
@@ -34,6 +34,7 @@ type AppContextType = {
   loadingList: boolean;
   loadingRoutes: boolean;
   error: string | null;
+  locationError: string | null;
 
   // Actions
   findRestaurants: () => Promise<void>;
@@ -41,6 +42,7 @@ type AppContextType = {
   selectRestaurant: (r: Restaurant) => Promise<void>;
   removeRestaurant: (id: string) => void;
   closeReveal: () => void;
+  setManualLocation: (address: string) => Promise<boolean>;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -73,6 +75,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loadingList, setLoadingList] = useState(false);
   const [loadingRoutes, setLoadingRoutes] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // Caches — refs so updating them doesn't cause re-renders.
   const locationRef = useRef<Coords | null>(null);
@@ -87,6 +90,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return c;
   }
 
+  const LOCATION_FAIL =
+    "We couldn't get your location. Allow location access in your browser, or enter an address below.";
+
+  // Fallback: geocode a typed address and use it as the location.
+  async function setManualLocation(address: string): Promise<boolean> {
+    try {
+      const c = await geocodeAddress(address);
+      locationRef.current = c;
+      setUserLocation(c);
+      setLocationError(null);
+      return true;
+    } catch (err: any) {
+      setLocationError(
+        err.message === "Address not found"
+          ? "We couldn't find that address — try being more specific."
+          : "Something went wrong looking up that address."
+      );
+      return false;
+    }
+  }
+
   function prefsQuery(c: Coords) {
     const travel = travelTime || 15;
     return `lat=${c.lat}&lng=${c.lng}&max_travel=${travel}&cuisine=${cuisine}&avg_stars=${stars}`;
@@ -94,10 +118,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   async function findRestaurants() {
     setError(null);
+    setLocationError(null);
+
+    // Location first — if it fails, show the address fallback instead of a generic error.
+    let c: Coords;
+    try {
+      c = await getLocation();
+    } catch {
+      setLocationError(LOCATION_FAIL);
+      return;
+    }
+
     setShowResults(true);
     setLoadingList(true);
     try {
-      const c = await getLocation();
       const res = await fetch(`${API_URL}/recommend?${prefsQuery(c)}`);
       if (!res.ok) throw new Error("Failed to fetch restaurants");
       setResults(await res.json());
@@ -137,30 +171,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   async function pickRandom() {
     setError(null);
+    setLocationError(null);
+
+    // Decide how we'll get the restaurant. If there's no list yet we need
+    // location first — handle that failure BEFORE opening the wheel.
+    let getRestaurant: () => Promise<Restaurant>;
+
+    if (results.length > 0) {
+      // Reuse the already-loaded list (no extra API call, no location needed).
+      const r = results[Math.floor(Math.random() * results.length)];
+      getRestaurant = async () => r;
+    } else {
+      let c: Coords;
+      try {
+        c = await getLocation();
+      } catch {
+        setLocationError(LOCATION_FAIL);
+        return;
+      }
+      getRestaurant = async () => {
+        const res = await fetch(`${API_URL}/random?${prefsQuery(c)}`);
+        if (!res.ok) throw new Error("No restaurant found");
+        return await res.json();
+      };
+    }
+
+    // Now open the wheel and spin while we load.
     setRevealed(false);
     setShowMainMap(false);
     setPicking(true);
-    setIsRevealOpen(true); // open immediately — the wheel spins while we load
+    setIsRevealOpen(true);
 
     // Keep the wheel spinning for at least this long so it always feels intentional.
     const minSpin = new Promise((resolve) => setTimeout(resolve, 1800));
 
     try {
       const load = async () => {
-        let restaurant: Restaurant;
-        // Reuse the already-loaded list if we have one (no extra API call).
-        if (results.length > 0) {
-          restaurant = results[Math.floor(Math.random() * results.length)];
-        } else {
-          const c = await getLocation();
-          const res = await fetch(`${API_URL}/random?${prefsQuery(c)}`);
-          if (!res.ok) throw new Error("No restaurant found");
-          restaurant = await res.json();
-        }
+        const restaurant = await getRestaurant();
         await selectRestaurant(restaurant); // also fetches/caches the route
       };
-
-      // Wait for BOTH the data and the minimum spin time.
       await Promise.all([load(), minSpin]);
       setPicking(false); // wheel stops → scratch card appears
     } catch (err: any) {
@@ -184,8 +233,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     travelTime, setTravelTime, cuisine, setCuisine, stars, setStars,
     results, selected, routes, mode, setMode, userLocation,
     showResults, showMainMap, isRevealOpen, picking, revealed, setRevealed,
-    loadingList, loadingRoutes, error,
+    loadingList, loadingRoutes, error, locationError,
     findRestaurants, pickRandom, selectRestaurant, removeRestaurant, closeReveal,
+    setManualLocation,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

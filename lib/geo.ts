@@ -12,3 +12,23 @@ export function getCoords(): Promise<{ lat: number; lng: number }> {
     );
   });
 }
+
+// Turn a typed address into coordinates using Nominatim (OpenStreetMap, free).
+// Used as a fallback when the browser can't / won't give us the user's location.
+export async function geocodeAddress(
+  address: string
+): Promise<{ lat: number; lng: number }> {
+  const url =
+    "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+    encodeURIComponent(address);
+
+  const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+  if (!res.ok) throw new Error("Geocoding request failed");
+
+  const data = await res.json();
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error("Address not found");
+  }
+
+  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+}
